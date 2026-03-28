@@ -1,0 +1,9 @@
+[project]
+name = "wise-voice-agent"
+version = "0.1.0"
+description = "Wise customer support voice agent — handles 'Where is my money?' FAQs"
+requires-python = ">=3.11"
+dependencies = [
+    "livekit-agents[openai,deepgram,elevenlabs,silero,turn-detector]~=1.5",
+    "python-dotenv>=1.0",
+]

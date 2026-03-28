@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+.next/
+.turbo/
+
+# Environment
+.env.local
+.env
+
+# IDE
+.claude/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Build artifacts
+uv.lock
+web/tsconfig.tsbuildinfo
+web/next-env.d.ts
+
+# Call summaries (generated at runtime)
+call_summaries/
+sip/
