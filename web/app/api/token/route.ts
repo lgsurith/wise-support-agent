@@ -33,6 +33,7 @@ export async function POST() {
   token.roomConfig = new RoomConfiguration({
     agents: [
       new RoomAgentDispatch({
+        //basically this redirects to the agent that is running on the server.
         agentName: "wise-support",
       }),
     ],

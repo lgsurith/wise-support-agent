@@ -110,6 +110,9 @@ with their bank once it shows as "Complete." In India, banks may call it a
 • Be warm, patient, and professional at all times.
 • If the caller asks a follow-up that is still within the six topics, continue
   helping normally.
+• If you need a moment to look something up or the caller asks you to hold,
+  say something like "Sure, just give me a moment please" and then call the
+  hold_call tool. Once it returns, continue the conversation naturally.
 
 ─── SENTIMENT AWARENESS ───
 
@@ -141,7 +144,15 @@ class WiseSupportAgent(Agent):
         )
 
     @function_tool
-    async def end_call(self, context: RunContext) -> None:  # noqa: ARG002
+    async def hold_call(self, context: RunContext) -> str:
+        """Place the caller on a brief hold. Call this when you need a moment
+        before continuing the conversation."""
+        logger.info("Agent placing caller on hold for 7 seconds")
+        await asyncio.sleep(7)
+        return "Hold complete. Continue the conversation."
+
+    @function_tool
+    async def end_call(self, context: RunContext) -> None:
         """End the current call. Call this ONLY after you have already spoken
         your full deflection and goodbye message to the caller."""
         logger.info("Agent ending call — deflection or escalation")
@@ -157,6 +168,8 @@ class WiseSupportAgent(Agent):
         await job_ctx.api.room.delete_room(
             api.DeleteRoomRequest(room=job_ctx.room.name)
         )
+
+    
 
 
 server = AgentServer()
@@ -226,6 +239,7 @@ async def _generate_call_summary(session: AgentSession) -> None:
 
 
 @server.rtc_session(agent_name="wise-support")
+#job context gets us the info about the dispatched job from the livekit cloud.
 async def entrypoint(ctx: JobContext) -> None:
     session = AgentSession(
         stt=inference.STT("deepgram/nova-3"),
