@@ -147,13 +147,29 @@ class WiseSupportAgent(Agent):
 
     @function_tool
     async def hold_call(self, context: RunContext) -> str:
-        """Place the caller on a brief hold. Call this when you need a moment
-        before continuing the conversation. If the caller does not respond
-        after 7 seconds, the call will be ended automatically."""
-        logger.info("Agent placing caller on hold for 7 seconds")
+        """Place the caller on a brief hold. Waits 7 seconds for the caller
+        to respond. If they respond, continues. If not, waits another
+        7 seconds. If still no response, ends the call."""
+        msg_count = len(self.session.history.items)
+
+        # First wait — 7 seconds
+        logger.info("Hold: waiting 7 seconds for caller response")
         await asyncio.sleep(7)
-        # No response after hold — end the call to free resources
-        logger.info("No response after hold — ending call")
+
+        if len(self.session.history.items) > msg_count:
+            logger.info("Hold: caller responded during first wait")
+            return "The caller responded. Continue the conversation."
+
+        # Second wait — another 7 seconds
+        logger.info("Hold: no response, waiting another 7 seconds")
+        await asyncio.sleep(7)
+
+        if len(self.session.history.items) > msg_count:
+            logger.info("Hold: caller responded during second wait")
+            return "The caller responded. Continue the conversation."
+
+        # No response after 14 seconds total — end the call
+        logger.info("Hold: no response after 14 seconds — ending call")
         job_ctx = get_job_context()
         await job_ctx.api.room.delete_room(
             api.DeleteRoomRequest(room=job_ctx.room.name)
