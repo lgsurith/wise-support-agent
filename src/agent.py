@@ -156,7 +156,8 @@ class WiseSupportAgent(Agent):
     @function_tool
     async def end_call(self, context: RunContext) -> None:
         """End the current call. Call this ONLY after you have already spoken
-        your full deflection and goodbye message to the caller."""
+        your full deflection and goodbye message to the caller.
+        Waits 7 seconds for the caller to respond before disconnecting."""
         logger.info("Agent ending call — deflection or escalation")
         # Poll until current TTS playback finishes
         for _ in range(30):
@@ -164,7 +165,8 @@ class WiseSupportAgent(Agent):
             if speech is None or speech.done():
                 break
             await asyncio.sleep(0.5)
-        await asyncio.sleep(1)
+        # Wait 7 seconds for the caller to respond before disconnecting
+        await asyncio.sleep(7)
         # Delete the room to disconnect all participants (web + SIP)
         job_ctx = get_job_context()
         await job_ctx.api.room.delete_room(
