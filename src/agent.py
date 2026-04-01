@@ -148,16 +148,22 @@ class WiseSupportAgent(Agent):
     @function_tool
     async def hold_call(self, context: RunContext) -> str:
         """Place the caller on a brief hold. Call this when you need a moment
-        before continuing the conversation."""
+        before continuing the conversation. If the caller does not respond
+        after 7 seconds, the call will be ended automatically."""
         logger.info("Agent placing caller on hold for 7 seconds")
         await asyncio.sleep(7)
-        return "Hold complete. Continue the conversation."
+        # No response after hold — end the call to free resources
+        logger.info("No response after hold — ending call")
+        job_ctx = get_job_context()
+        await job_ctx.api.room.delete_room(
+            api.DeleteRoomRequest(room=job_ctx.room.name)
+        )
+        return "Call ended due to no response."
 
     @function_tool
     async def end_call(self, context: RunContext) -> None:
         """End the current call. Call this ONLY after you have already spoken
-        your full deflection and goodbye message to the caller.
-        Waits 7 seconds for the caller to respond before disconnecting."""
+        your full deflection and goodbye message to the caller."""
         logger.info("Agent ending call — deflection or escalation")
         # Poll until current TTS playback finishes
         for _ in range(30):
@@ -165,8 +171,7 @@ class WiseSupportAgent(Agent):
             if speech is None or speech.done():
                 break
             await asyncio.sleep(0.5)
-        # Wait 7 seconds for the caller to respond before disconnecting
-        await asyncio.sleep(7)
+        await asyncio.sleep(1)
         # Delete the room to disconnect all participants (web + SIP)
         job_ctx = get_job_context()
         await job_ctx.api.room.delete_room(
